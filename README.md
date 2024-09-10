@@ -1,7 +1,3 @@
-#!/bin/bash
-
-# Create the README.md file and write the content
-cat <<EOL > README.md
 ## Tulu Translator
 
 Our aim is to contribute to society by developing a tool that translates between English and Tulu. The Tulu Translator will facilitate communication and enhance understanding between speakers of these languages, supporting the preservation and promotion of local culture.
@@ -32,6 +28,3 @@ Our aim is to contribute to society by developing a tool that translates between
 ### Disclaimer
 
 This project is still under development and is not yet publicly available. Please check back for updates and further information.
-EOL
-
-echo "README.md file has been created and updated."
