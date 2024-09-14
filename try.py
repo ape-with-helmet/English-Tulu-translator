@@ -49,7 +49,7 @@ def save_translation_to_csv(original_text, translated_text, filename='translated
         writer.writerow([original_text, translated_text])  # Original and translated text
 
 # Example usage
-text_to_translate = "I am Shwetha from Koila village"
+text_to_translate = "Our aim is to contribute to society by developing a tool that translates between English and Tulu. The Tulu Translator will facilitate communication and enhance understanding between speakers of these languages, supporting the preservation and promotion of local culture."
 translated_text = translate_to_kannada(text_to_translate)
 print(f'Translated Text: {translated_text}')
 
