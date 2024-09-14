@@ -3,10 +3,7 @@ import json
 import csv
 
 # Azure subscription keys and service region
-speech_key = "ae867631672942ffb0a8accc63ba4339"
-service_region = "eastus"
-translator_key = "16d3dee4bd37424a97dc72a7722cfa31"
-translator_endpoint = "https://api.cognitive.microsofttranslator.com/"
+
 
 # Default target language for translation
 target_language = "kn"  # Kannada
