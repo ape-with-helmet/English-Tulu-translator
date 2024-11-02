@@ -21,7 +21,7 @@ data = pd.read_csv('translation_train_dataset.csv')
 print(data.head())
 
 # Parameters
-max_length = 20  # Maximum length of sequences
+max_length = 40  # Maximum length of sequences
 num_samples = len(data)  # Total number of samples
 
 # Initialize Tokenizer
@@ -69,7 +69,7 @@ y_output = tf.keras.utils.to_categorical(y_output, num_classes=len(tulu_tokenize
 print(f'X shape: {X.shape}')          # Should be (num_samples, max_length)
 print(f'y_output shape: {y_output.shape}')  # Should be (num_samples, max_length, num_classes)
 
-def create_transformer_model(input_dim, output_dim, embedding_dim=128, num_heads=8, ff_dim=128):
+def create_transformer_model(input_dim, output_dim, embedding_dim=1024, num_heads=16, ff_dim=1024, dropout_rate = 0.2):
     # Input layer
     inputs = tf.keras.Input(shape=(None,))
     
@@ -77,12 +77,13 @@ def create_transformer_model(input_dim, output_dim, embedding_dim=128, num_heads
     x = tf.keras.layers.Embedding(input_dim=input_dim, output_dim=embedding_dim)(inputs)
     
     # Transformer layers
-    for _ in range(4):
+    for _ in range(8):
         attn_output = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=embedding_dim)(x, x)
         attn_output = tf.keras.layers.LayerNormalization(epsilon=1e-6)(attn_output + x)
         
         # Adjust Dense layer to match `embedding_dim`
         x = tf.keras.layers.Dense(ff_dim, activation='relu')(attn_output)
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
         x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(x + attn_output)
     
     # Output layer
@@ -97,11 +98,12 @@ model = create_transformer_model(len(english_tokenizer.word_index) + 1, len(tulu
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 
-# Define the learning rate
-learning_rate = 1.0  # Adjust as needed
+initial_learning_rate = 1e-4
+decay_steps = 10000
+warmup_steps = 4000
 
 # Compile the model with the custom learning rate
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=initial_learning_rate),
               loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Model summary
@@ -112,14 +114,15 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_wei
 model_checkpoint = ModelCheckpoint('best_translation_model.keras', save_best_only=True)
 
 # Learning rate scheduler
-lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=1, min_lr=1e-6)
+lr_schedule = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+    [warmup_steps], [initial_learning_rate / warmup_steps, initial_learning_rate])
 
 # Train the model
 history = model.fit(X, y_output, 
                     epochs=100,  # Increased epochs for better training
                     batch_size=64,  # Common batch size
                     validation_split=0.2,  # Use 20% of the data for validation
-                    callbacks=[early_stopping, model_checkpoint, lr_scheduler])
+                    callbacks=[early_stopping, model_checkpoint, lr_schedule])
 
 
 # Plot training & validation loss values
